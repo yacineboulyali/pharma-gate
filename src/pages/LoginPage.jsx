@@ -1,6 +1,39 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../hooks/useTheme'
+
+const THEME_OPTIONS = [
+  {
+    value: 'light',
+    label: 'Clair',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth={2}>
+        <circle cx="12" cy="12" r="5" />
+        <path strokeLinecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    ),
+  },
+  {
+    value: 'dark',
+    label: 'Sombre',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'auto',
+    label: 'Auto',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4" stroke="currentColor" strokeWidth={2}>
+        <rect x="2" y="4" width="20" height="14" rx="2" />
+        <path strokeLinecap="round" d="M8 21h8M12 17v4" />
+      </svg>
+    ),
+  },
+]
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -8,6 +41,7 @@ export default function LoginPage() {
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { signIn, profile } = useAuth()
+  const { theme, setTheme } = useTheme()
   const navigate = useNavigate()
 
   // Rediriger si déjà connecté
@@ -34,7 +68,28 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-pharmacy-green-light to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-pharmacy-green-light to-white dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 relative">
+      {/* Sélecteur de thème */}
+      <div className="absolute top-4 right-4 flex items-center gap-0.5 bg-white/80 dark:bg-gray-800/80 backdrop-blur rounded-lg p-1 shadow-sm border border-gray-100 dark:border-gray-700">
+        {THEME_OPTIONS.map(option => (
+          <button
+            key={option.value}
+            type="button"
+            onClick={() => setTheme(option.value)}
+            aria-label={`Thème ${option.label}`}
+            aria-pressed={theme === option.value}
+            title={option.label}
+            className={`p-1.5 rounded-md transition-colors ${
+              theme === option.value
+                ? 'bg-pharmacy-green-light text-pharmacy-green dark:bg-pharmacy-green/20 dark:text-green-400'
+                : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+            }`}
+          >
+            {option.icon}
+          </button>
+        ))}
+      </div>
+
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
