@@ -1,0 +1,11 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+# React Router (SPA) : toute route inconnue doit servir index.html,
+# sinon Netlify renvoie une 404 sur un accès direct ou un refresh
+# (ex: /responsable/stock, /assistante/sortie).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

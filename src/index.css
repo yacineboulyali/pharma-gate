@@ -1,0 +1,52 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900 antialiased dark:bg-gray-900 dark:text-gray-100;
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-pharmacy-green text-white px-4 py-2 rounded-lg font-medium
+           hover:bg-pharmacy-green-mid transition-colors duration-150
+           disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-white text-gray-700 px-4 py-2 rounded-lg font-medium border border-gray-200
+           hover:bg-gray-50 transition-colors duration-150
+           dark:bg-gray-800 dark:text-gray-200 dark:border-gray-700 dark:hover:bg-gray-700;
+  }
+  .btn-danger {
+    @apply bg-red-600 text-white px-4 py-2 rounded-lg font-medium
+           hover:bg-red-700 transition-colors duration-150;
+  }
+  .card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm
+           dark:bg-gray-800 dark:border-gray-700;
+  }
+  .input-field {
+    @apply w-full px-3 py-2 border border-gray-200 rounded-lg text-sm
+           focus:outline-none focus:ring-2 focus:ring-pharmacy-green/30 focus:border-pharmacy-green
+           placeholder-gray-400
+           dark:bg-gray-800 dark:border-gray-700 dark:text-gray-100 dark:placeholder-gray-500;
+  }
+  .badge-green {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+           bg-pharmacy-green-light text-pharmacy-green
+           dark:bg-pharmacy-green/20 dark:text-green-400;
+  }
+  .badge-orange {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+           bg-pharmacy-orange-light text-pharmacy-orange
+           dark:bg-pharmacy-orange/20 dark:text-orange-400;
+  }
+  .badge-red {
+    @apply inline-flex items-center px-2 py-0.5 rounded text-xs font-medium
+           bg-red-50 text-red-700
+           dark:bg-red-500/20 dark:text-red-400;
+  }
+}
