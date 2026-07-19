@@ -1,9 +1,43 @@
 import { useState } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth'
+import { useTheme } from '../hooks/useTheme'
+
+const THEME_OPTIONS = [
+  {
+    value: 'light',
+    label: 'Clair',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth={2}>
+        <circle cx="12" cy="12" r="5" />
+        <path strokeLinecap="round" d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" />
+      </svg>
+    ),
+  },
+  {
+    value: 'dark',
+    label: 'Sombre',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+      </svg>
+    ),
+  },
+  {
+    value: 'auto',
+    label: 'Auto',
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="w-5 h-5" stroke="currentColor" strokeWidth={2}>
+        <rect x="2" y="4" width="20" height="14" rx="2" />
+        <path strokeLinecap="round" d="M8 21h8M12 17v4" />
+      </svg>
+    ),
+  },
+]
 
 export default function Layout({ children, navLinks = [] }) {
   const { profile, signOut } = useAuth()
+  const { theme, setTheme } = useTheme()
   const navigate = useNavigate()
   const location = useLocation()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -100,6 +134,29 @@ export default function Layout({ children, navLinks = [] }) {
             </Link>
           ))}
         </nav>
+
+        {/* Sélecteur de thème */}
+        <div className="border-t border-gray-100 dark:border-gray-700 p-3 flex-shrink-0">
+          <p className="px-1 pb-2 text-xs font-medium text-gray-400 dark:text-gray-500">Apparence</p>
+          <div className="grid grid-cols-3 gap-1.5">
+            {THEME_OPTIONS.map(option => (
+              <button
+                key={option.value}
+                onClick={() => setTheme(option.value)}
+                aria-label={`Thème ${option.label}`}
+                aria-pressed={theme === option.value}
+                className={`flex flex-col items-center gap-1 py-2 rounded-lg text-xs font-medium transition-colors ${
+                  theme === option.value
+                    ? 'bg-pharmacy-green-light text-pharmacy-green dark:bg-pharmacy-green/20 dark:text-green-400'
+                    : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
+                }`}
+              >
+                {option.icon}
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Déconnexion */}
         <div className="border-t border-gray-100 dark:border-gray-700 p-2 flex-shrink-0">

@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './hooks/useAuth'
+import { ThemeProvider } from './hooks/useTheme'
 
 // Pages communes
 import LoginPage from './pages/LoginPage'
@@ -40,53 +41,55 @@ function ProtectedRoute({ children, role }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-        <Routes>
-          <Route path="/login" element={<LoginPage />} />
+    <ThemeProvider>
+      <BrowserRouter>
+        <AuthProvider>
+          <Routes>
+            <Route path="/login" element={<LoginPage />} />
 
-          {/* Routes assistante */}
-          <Route path="/assistante" element={
-            <ProtectedRoute role="assistante"><AssistanteDashboard /></ProtectedRoute>
-          } />
-          <Route path="/assistante/sortie" element={
-            <ProtectedRoute role="assistante"><SaiseSortie /></ProtectedRoute>
-          } />
-          <Route path="/assistante/log" element={
-            <ProtectedRoute role="assistante"><LogSorties /></ProtectedRoute>
-          } />
-          <Route path="/assistante/statistiques" element={
-            <ProtectedRoute role="assistante"><AssistanteStatistiques /></ProtectedRoute>
-          } />
+            {/* Routes assistante */}
+            <Route path="/assistante" element={
+              <ProtectedRoute role="assistante"><AssistanteDashboard /></ProtectedRoute>
+            } />
+            <Route path="/assistante/sortie" element={
+              <ProtectedRoute role="assistante"><SaiseSortie /></ProtectedRoute>
+            } />
+            <Route path="/assistante/log" element={
+              <ProtectedRoute role="assistante"><LogSorties /></ProtectedRoute>
+            } />
+            <Route path="/assistante/statistiques" element={
+              <ProtectedRoute role="assistante"><AssistanteStatistiques /></ProtectedRoute>
+            } />
 
-          {/* Routes responsable */}
-          <Route path="/responsable" element={
-            <ProtectedRoute role="responsable"><ResponsableDashboard /></ProtectedRoute>
-          } />
-          <Route path="/responsable/sortie" element={
-            <ProtectedRoute role="responsable"><SaiseSortie /></ProtectedRoute>
-          } />
-          <Route path="/responsable/statistiques" element={
-            <ProtectedRoute role="responsable"><ResponsableStatistiques /></ProtectedRoute>
-          } />
-          <Route path="/responsable/stock" element={
-            <ProtectedRoute role="responsable"><GestionStock /></ProtectedRoute>
-          } />
-          <Route path="/responsable/patients" element={
-            <ProtectedRoute role="responsable"><ListePatients /></ProtectedRoute>
-          } />
-          <Route path="/responsable/assistantes" element={
-            <ProtectedRoute role="responsable"><GestionAssistantes /></ProtectedRoute>
-          } />
-          <Route path="/responsable/historique" element={
-            <ProtectedRoute role="responsable"><HistoriqueGlobal /></ProtectedRoute>
-          } />
+            {/* Routes responsable */}
+            <Route path="/responsable" element={
+              <ProtectedRoute role="responsable"><ResponsableDashboard /></ProtectedRoute>
+            } />
+            <Route path="/responsable/sortie" element={
+              <ProtectedRoute role="responsable"><SaiseSortie /></ProtectedRoute>
+            } />
+            <Route path="/responsable/statistiques" element={
+              <ProtectedRoute role="responsable"><ResponsableStatistiques /></ProtectedRoute>
+            } />
+            <Route path="/responsable/stock" element={
+              <ProtectedRoute role="responsable"><GestionStock /></ProtectedRoute>
+            } />
+            <Route path="/responsable/patients" element={
+              <ProtectedRoute role="responsable"><ListePatients /></ProtectedRoute>
+            } />
+            <Route path="/responsable/assistantes" element={
+              <ProtectedRoute role="responsable"><GestionAssistantes /></ProtectedRoute>
+            } />
+            <Route path="/responsable/historique" element={
+              <ProtectedRoute role="responsable"><HistoriqueGlobal /></ProtectedRoute>
+            } />
 
-          {/* Redirection par défaut */}
-          <Route path="/" element={<Navigate to="/login" replace />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+            {/* Redirection par défaut */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+            <Route path="*" element={<Navigate to="/login" replace />} />
+          </Routes>
+        </AuthProvider>
+      </BrowserRouter>
+    </ThemeProvider>
   )
 }
