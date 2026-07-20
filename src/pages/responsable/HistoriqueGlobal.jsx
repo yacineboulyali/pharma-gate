@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import Layout from '../../components/Layout'
+import Modal from '../../components/Modal'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { getDateRangeFilter } from '../../lib/dateRange'
+import { clampQuantite } from '../../lib/quantite'
 
 const NAV = [
   { to: '/responsable', label: 'Dashboard' },
@@ -22,6 +24,12 @@ export default function HistoriqueGlobal() {
   const [customDate, setCustomDate] = useState('')
   const [sorties, setSorties] = useState([])
   const [loading, setLoading] = useState(true)
+  const [editSortie, setEditSortie] = useState(null) // { id, quantite, patientNom, medicamentId, medicamentNom, stockDisponible }
+  const [editPatientSearch, setEditPatientSearch] = useState('')
+  const [editPatientResults, setEditPatientResults] = useState([])
+  const [saving, setSaving] = useState(false)
+  const [editError, setEditError] = useState('')
+  const [msg, setMsg] = useState('')
 
   useEffect(() => { fetchSorties() }, [filtre, customDate])
 
@@ -33,7 +41,7 @@ export default function HistoriqueGlobal() {
 
     const query = supabase
       .from('sorties')
-      .select('id, quantite, date_sortie, medicaments(designation), patients(nom), users(username, full_name)')
+      .select('id, quantite, date_sortie, medicament_id, medicaments(designation, stock), patients(nom), users(username, full_name)')
       .gte('date_sortie', from)
       .order('date_sortie', { ascending: false })
 
@@ -42,6 +50,59 @@ export default function HistoriqueGlobal() {
     const { data } = await query
     setSorties(data || [])
     setLoading(false)
+  }
+
+  function openEdit(s) {
+    setEditSortie({
+      id: s.id,
+      quantite: s.quantite,
+      medicamentNom: s.medicaments?.designation,
+      // Le stock disponible pour cette édition inclut la quantité déjà sortie,
+      // puisqu'elle sera "rendue" avant d'appliquer la nouvelle valeur
+      stockDisponible: (s.medicaments?.stock || 0) + s.quantite,
+    })
+    setEditPatientSearch(s.patients?.nom || '')
+    setEditPatientResults([])
+    setEditError('')
+  }
+
+  // Recherche patient en temps réel (édition)
+  useEffect(() => {
+    if (!editSortie || editPatientSearch.length < 2) { setEditPatientResults([]); return }
+    const timer = setTimeout(async () => {
+      const { data } = await supabase
+        .from('patients')
+        .select('id, nom')
+        .ilike('nom', `%${editPatientSearch}%`)
+        .order('nom')
+        .limit(8)
+      setEditPatientResults(data || [])
+    }, 200)
+    return () => clearTimeout(timer)
+  }, [editPatientSearch, editSortie])
+
+  async function saveEdit() {
+    if (!editSortie || !editPatientSearch.trim() || editSortie.quantite < 1) return
+    setSaving(true)
+    setEditError('')
+
+    const { data, error } = await supabase.rpc('modifier_sortie', {
+      p_sortie_id: editSortie.id,
+      p_patient_nom: editPatientSearch.trim(),
+      p_quantite: editSortie.quantite,
+    })
+
+    if (error || !data?.success) {
+      setEditError(data?.error || error?.message || "Erreur lors de la modification")
+      setSaving(false)
+      return
+    }
+
+    setSaving(false)
+    setEditSortie(null)
+    setMsg('✓ Sortie modifiée')
+    await fetchSorties()
+    setTimeout(() => setMsg(''), 3000)
   }
 
   function exportPDF() {
@@ -94,6 +155,12 @@ export default function HistoriqueGlobal() {
         </button>
       </div>
 
+      {msg && (
+        <div className="bg-green-50 text-pharmacy-green text-sm px-4 py-2 rounded-lg border border-green-100 dark:bg-pharmacy-green/10 dark:border-pharmacy-green/20 dark:text-green-400 mb-4">
+          {msg}
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2 mb-6">
         {[
           { label: "Aujourd'hui", value: 'today' },
@@ -124,13 +191,14 @@ export default function HistoriqueGlobal() {
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Patient</th>
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Assistante</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Qté</th>
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">Action</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-50 dark:divide-gray-700">
             {loading ? (
-              <tr><td colSpan={5} className="p-8 text-center text-gray-400 dark:text-gray-500">Chargement…</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-gray-400 dark:text-gray-500">Chargement…</td></tr>
             ) : sorties.length === 0 ? (
-              <tr><td colSpan={5} className="p-8 text-center text-gray-400 dark:text-gray-500">Aucune sortie pour cette période</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-gray-400 dark:text-gray-500">Aucune sortie pour cette période</td></tr>
             ) : sorties.map(s => (
               <tr key={s.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">
@@ -140,6 +208,14 @@ export default function HistoriqueGlobal() {
                 <td className="px-4 py-3 text-gray-600 dark:text-gray-300">{s.patients?.nom || '—'}</td>
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{s.users?.full_name || s.users?.username}</td>
                 <td className="px-4 py-3 text-right"><span className="badge-green">{s.quantite}</span></td>
+                <td className="px-4 py-3 text-center">
+                  <button
+                    onClick={() => openEdit(s)}
+                    className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                  >
+                    Modifier
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -165,9 +241,92 @@ export default function HistoriqueGlobal() {
               <p>Patient : <span className="font-medium">{s.patients?.nom || '—'}</span></p>
               <p>Assistante : <span className="font-medium">{s.users?.full_name || s.users?.username}</span></p>
             </div>
+            <button
+              onClick={() => openEdit(s)}
+              className="mt-3 text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+            >
+              Modifier
+            </button>
           </div>
         ))}
       </div>
+
+      {/* Modal modification d'une sortie */}
+      <Modal open={!!editSortie} onClose={() => setEditSortie(null)} title="Modifier la sortie">
+        {editSortie && (
+          <div className="max-w-md space-y-4">
+            <div className="bg-pharmacy-green-light dark:bg-pharmacy-green/20 rounded-lg px-4 py-3">
+              <p className="text-xs text-pharmacy-green dark:text-green-400 font-medium">Médicament</p>
+              <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 mt-0.5">{editSortie.medicamentNom}</p>
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Patient</label>
+              <input
+                type="text"
+                className="input-field"
+                placeholder="Tapez le nom du patient…"
+                value={editPatientSearch}
+                onChange={e => setEditPatientSearch(e.target.value)}
+                autoFocus
+              />
+              {editPatientResults.length > 0 && (
+                <div className="mt-1 border border-gray-200 dark:border-gray-700 rounded-lg overflow-hidden shadow-sm">
+                  {editPatientResults.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => { setEditPatientSearch(p.nom); setEditPatientResults([]) }}
+                      className="w-full px-4 py-2.5 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-0 text-sm text-gray-900 dark:text-gray-100"
+                    >
+                      {p.nom}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Quantité</label>
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => setEditSortie(f => ({ ...f, quantite: clampQuantite(f.quantite - 1, f.stockDisponible) }))}
+                  className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xl font-light"
+                >−</button>
+                <input
+                  type="number"
+                  min={1}
+                  max={editSortie.stockDisponible}
+                  value={editSortie.quantite}
+                  onChange={e => setEditSortie(f => ({ ...f, quantite: clampQuantite(e.target.value, f.stockDisponible) }))}
+                  className="input-field text-center w-20 text-lg font-medium"
+                />
+                <button
+                  onClick={() => setEditSortie(f => ({ ...f, quantite: clampQuantite(f.quantite + 1, f.stockDisponible) }))}
+                  className="w-10 h-10 rounded-lg border border-gray-200 dark:border-gray-700 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xl font-light"
+                >+</button>
+                <span className="text-xs text-gray-400 dark:text-gray-500">/ {editSortie.stockDisponible} disponible{editSortie.stockDisponible > 1 ? 's' : ''}</span>
+              </div>
+            </div>
+
+            {editError && (
+              <div className="bg-red-50 text-red-700 text-sm px-3 py-2 rounded-lg border border-red-100 dark:bg-red-500/10 dark:text-red-400 dark:border-red-500/20">
+                {editError}
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2">
+              <button onClick={() => setEditSortie(null)} className="btn-secondary flex-1">Annuler</button>
+              <button
+                onClick={saveEdit}
+                className="btn-primary flex-1"
+                disabled={saving || !editPatientSearch.trim() || editSortie.quantite < 1}
+              >
+                {saving ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
     </Layout>
   )
 }

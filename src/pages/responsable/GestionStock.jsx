@@ -122,9 +122,12 @@ export default function GestionStock() {
       return
     }
 
+    const stockInitial = Number(nouveauMed.stock) || 0
+
     const { error } = await supabase.from('medicaments').insert({
       designation: nouveauMed.designation.trim(),
-      stock: Number(nouveauMed.stock) || 0,
+      stock: stockInitial,
+      qte_livree: stockInitial,
       seuil_alerte: Number(nouveauMed.seuil_alerte) || 5,
     })
 
@@ -148,11 +151,18 @@ export default function GestionStock() {
     setSaving(true)
     setMsg('')
 
+    // Toute correction manuelle du stock doit être répercutée sur qte_livree,
+    // sinon "Qt Total" (stock + sortie) se désynchronise de "Qt Livré"
+    const nouveauStock = Number(editMed.stock) || 0
+    const delta = nouveauStock - (Number(editMed.stockOriginal) || 0)
+    const nouvelleQteLivree = (Number(editMed.qte_livree) || 0) + delta
+
     const { error } = await supabase
       .from('medicaments')
       .update({
         designation: editMed.designation.trim(),
-        stock: Number(editMed.stock) || 0,
+        stock: nouveauStock,
+        qte_livree: nouvelleQteLivree,
         seuil_alerte: Number(editMed.seuil_alerte) || 5,
       })
       .eq('id', editMed.id)
@@ -284,7 +294,7 @@ export default function GestionStock() {
                       </button>
                     )}
                     <button
-                      onClick={() => setEditMed({ id: m.id, designation: m.designation, stock: m.stock, seuil_alerte: m.seuil_alerte })}
+                      onClick={() => setEditMed({ id: m.id, designation: m.designation, stock: m.stock, stockOriginal: m.stock, qte_livree: m.qte_livree, seuil_alerte: m.seuil_alerte })}
                       className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
                     >
                       Modifier
@@ -338,7 +348,7 @@ export default function GestionStock() {
                 </button>
               )}
               <button
-                onClick={() => setEditMed({ id: m.id, designation: m.designation, stock: m.stock, seuil_alerte: m.seuil_alerte })}
+                onClick={() => setEditMed({ id: m.id, designation: m.designation, stock: m.stock, stockOriginal: m.stock, qte_livree: m.qte_livree, seuil_alerte: m.seuil_alerte })}
                 className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
               >
                 Modifier
