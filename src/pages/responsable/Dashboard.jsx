@@ -27,8 +27,8 @@ export default function ResponsableDashboard() {
 
     const [{ data: sorties }, { data: meds }, { count: totalPatients }] = await Promise.all([
       supabase.from('sorties').select('id, quantite').gte('date_sortie', startMois),
-      supabase.from('medicaments').select('id, stock, seuil_alerte'),
-      supabase.from('patients').select('id', { count: 'exact', head: true }),
+      supabase.from('medicaments').select('id, stock, seuil_alerte, active').eq('active', true),
+      supabase.from('patients').select('id', { count: 'exact', head: true }).eq('active', true),
     ])
 
     const stockCritiqueCount = meds?.filter(m => m.stock <= (m.seuil_alerte || 5)).length || 0

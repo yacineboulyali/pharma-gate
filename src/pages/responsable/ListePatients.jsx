@@ -30,13 +30,17 @@ export default function ListePatients() {
   useEffect(() => { fetchPatients() }, [])
 
   async function fetchPatients() {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('patients')
       .select(`
         id, nom, active, created_at,
         sorties(id, quantite, date_sortie, medicaments(designation))
       `)
       .order('nom')
+    if (error) {
+      setMsg(`✗ ${error.message}`)
+      setTimeout(() => setMsg(''), 6000)
+    }
     setPatients(data || [])
     setLoading(false)
   }
@@ -46,21 +50,26 @@ export default function ListePatients() {
     setSaving(true)
     setMsg('')
 
-    const { error } = await supabase.from('patients').insert({ nom: nouveauNom.trim() })
+    try {
+      const { error } = await supabase.from('patients').insert({ nom: nouveauNom.trim() })
 
-    if (error) {
-      setMsg(`✗ ${error.message}`)
-      setSaving(false)
+      if (error) {
+        setMsg(`✗ ${error.message}`)
+        setTimeout(() => setMsg(''), 4000)
+        return
+      }
+
+      setMsg(`✓ ${nouveauNom} ajouté`)
+      setNouveauNom('')
+      setShowAjout(false)
+      await fetchPatients()
+      setTimeout(() => setMsg(''), 3000)
+    } catch (err) {
+      setMsg(`✗ ${err.message || 'Erreur réseau'}`)
       setTimeout(() => setMsg(''), 4000)
-      return
+    } finally {
+      setSaving(false)
     }
-
-    setMsg(`✓ ${nouveauNom} ajouté`)
-    setNouveauNom('')
-    setShowAjout(false)
-    setSaving(false)
-    await fetchPatients()
-    setTimeout(() => setMsg(''), 3000)
   }
 
   async function saveEditPatient() {
