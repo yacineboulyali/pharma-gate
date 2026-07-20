@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { PencilIcon, TrashIcon, ArchiveIcon, ArchiveRestoreIcon } from '../../components/Icons'
 
 const NAV = [
   { to: '/responsable', label: 'Dashboard' },
@@ -201,23 +202,26 @@ export default function GestionAssistantes() {
                   <div className="flex items-center justify-center gap-2 flex-wrap">
                     <button
                       onClick={() => { setError(''); setEditAssistante({ id: a.id, username: a.username, full_name: a.full_name || '' }) }}
-                      className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                      title="Modifier"
+                      className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
-                      Modifier
+                      <PencilIcon />
                     </button>
                     <button onClick={() => toggleActive(a)}
-                      className={`text-xs px-2 py-1 rounded font-medium transition-colors ${
+                      title={a.active ? 'Archiver' : 'Désarchiver'}
+                      className={`p-1.5 rounded transition-colors ${
                         a.active
                           ? 'bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20'
                           : 'bg-green-50 text-pharmacy-green hover:bg-green-100 dark:bg-pharmacy-green/10 dark:text-green-400 dark:hover:bg-pharmacy-green/20'
                       }`}>
-                      {a.active ? 'Archiver' : 'Désarchiver'}
+                      {a.active ? <ArchiveIcon /> : <ArchiveRestoreIcon />}
                     </button>
                     <button
                       onClick={() => setDeleteTarget(a)}
-                      className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors font-medium"
+                      title="Supprimer"
+                      className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
                     >
-                      Supprimer
+                      <TrashIcon />
                     </button>
                   </div>
                 </td>
@@ -247,23 +251,26 @@ export default function GestionAssistantes() {
             <div className="flex items-center gap-2 flex-wrap">
               <button
                 onClick={() => { setError(''); setEditAssistante({ id: a.id, username: a.username, full_name: a.full_name || '' }) }}
-                className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                title="Modifier"
+                className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
-                Modifier
+                <PencilIcon />
               </button>
               <button onClick={() => toggleActive(a)}
-                className={`text-xs px-2 py-1 rounded font-medium transition-colors ${
+                title={a.active ? 'Archiver' : 'Désarchiver'}
+                className={`p-1.5 rounded transition-colors ${
                   a.active
                     ? 'bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20'
                     : 'bg-green-50 text-pharmacy-green hover:bg-green-100 dark:bg-pharmacy-green/10 dark:text-green-400 dark:hover:bg-pharmacy-green/20'
                 }`}>
-                {a.active ? 'Archiver' : 'Désarchiver'}
+                {a.active ? <ArchiveIcon /> : <ArchiveRestoreIcon />}
               </button>
               <button
                 onClick={() => setDeleteTarget(a)}
-                className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors font-medium"
+                title="Supprimer"
+                className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
               >
-                Supprimer
+                <TrashIcon />
               </button>
             </div>
           </div>

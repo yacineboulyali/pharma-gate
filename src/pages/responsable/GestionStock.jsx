@@ -4,6 +4,7 @@ import { useAuth } from '../../hooks/useAuth'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { PencilIcon, TrashIcon, ArchiveIcon, ArchiveRestoreIcon } from '../../components/Icons'
 import { filterMedicaments } from '../../lib/stock'
 
 const NAV = [
@@ -295,21 +296,24 @@ export default function GestionStock() {
                     )}
                     <button
                       onClick={() => setEditMed({ id: m.id, designation: m.designation, stock: m.stock, stockOriginal: m.stock, qte_livree: m.qte_livree, seuil_alerte: m.seuil_alerte })}
-                      className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                      title="Modifier"
+                      className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
-                      Modifier
+                      <PencilIcon />
                     </button>
                     <button
                       onClick={() => toggleActive(m)}
-                      className="text-xs px-2 py-1 rounded bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20 transition-colors font-medium"
+                      title={m.active === false ? 'Désarchiver' : 'Archiver'}
+                      className="p-1.5 rounded bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20 transition-colors"
                     >
-                      {m.active === false ? 'Désarchiver' : 'Archiver'}
+                      {m.active === false ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
                     </button>
                     <button
                       onClick={() => setDeleteTarget(m)}
-                      className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors font-medium"
+                      title="Supprimer"
+                      className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
                     >
-                      Supprimer
+                      <TrashIcon />
                     </button>
                   </div>
                 </td>
@@ -349,21 +353,24 @@ export default function GestionStock() {
               )}
               <button
                 onClick={() => setEditMed({ id: m.id, designation: m.designation, stock: m.stock, stockOriginal: m.stock, qte_livree: m.qte_livree, seuil_alerte: m.seuil_alerte })}
-                className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                title="Modifier"
+                className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
-                Modifier
+                <PencilIcon />
               </button>
               <button
                 onClick={() => toggleActive(m)}
-                className="text-xs px-2 py-1 rounded bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20 transition-colors font-medium"
+                title={m.active === false ? 'Désarchiver' : 'Archiver'}
+                className="p-1.5 rounded bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20 transition-colors"
               >
-                {m.active === false ? 'Désarchiver' : 'Archiver'}
+                {m.active === false ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
               </button>
               <button
                 onClick={() => setDeleteTarget(m)}
-                className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors font-medium"
+                title="Supprimer"
+                className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
               >
-                Supprimer
+                <TrashIcon />
               </button>
             </div>
           </div>

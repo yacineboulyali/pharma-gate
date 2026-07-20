@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react'
 import { supabase } from '../../lib/supabase'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
+import ConfirmDialog from '../../components/ConfirmDialog'
+import { PencilIcon, TrashIcon } from '../../components/Icons'
 import { format, parseISO } from 'date-fns'
 import { fr } from 'date-fns/locale'
 import jsPDF from 'jspdf'
@@ -30,6 +32,8 @@ export default function HistoriqueGlobal() {
   const [saving, setSaving] = useState(false)
   const [editError, setEditError] = useState('')
   const [msg, setMsg] = useState('')
+  const [deleteTarget, setDeleteTarget] = useState(null)
+  const [deleting, setDeleting] = useState(false)
 
   useEffect(() => { fetchSorties() }, [filtre, customDate])
 
@@ -101,6 +105,28 @@ export default function HistoriqueGlobal() {
     setSaving(false)
     setEditSortie(null)
     setMsg('✓ Sortie modifiée')
+    await fetchSorties()
+    setTimeout(() => setMsg(''), 3000)
+  }
+
+  async function confirmDelete() {
+    if (!deleteTarget) return
+    setDeleting(true)
+
+    const { data, error } = await supabase.rpc('supprimer_sortie', {
+      p_sortie_id: deleteTarget.id,
+    })
+
+    setDeleting(false)
+    setDeleteTarget(null)
+
+    if (error || !data?.success) {
+      setMsg(`✗ ${data?.error || error?.message || 'Erreur lors de la suppression'}`)
+      setTimeout(() => setMsg(''), 4000)
+      return
+    }
+
+    setMsg('✓ Sortie supprimée et stock rétabli')
     await fetchSorties()
     setTimeout(() => setMsg(''), 3000)
   }
@@ -209,12 +235,22 @@ export default function HistoriqueGlobal() {
                 <td className="px-4 py-3 text-gray-500 dark:text-gray-400">{s.users?.full_name || s.users?.username}</td>
                 <td className="px-4 py-3 text-right"><span className="badge-green">{s.quantite}</span></td>
                 <td className="px-4 py-3 text-center">
-                  <button
-                    onClick={() => openEdit(s)}
-                    className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
-                  >
-                    Modifier
-                  </button>
+                  <div className="flex items-center justify-center gap-2">
+                    <button
+                      onClick={() => openEdit(s)}
+                      title="Modifier"
+                      className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      <PencilIcon />
+                    </button>
+                    <button
+                      onClick={() => setDeleteTarget(s)}
+                      title="Supprimer"
+                      className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
+                    >
+                      <TrashIcon />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -241,12 +277,22 @@ export default function HistoriqueGlobal() {
               <p>Patient : <span className="font-medium">{s.patients?.nom || '—'}</span></p>
               <p>Assistante : <span className="font-medium">{s.users?.full_name || s.users?.username}</span></p>
             </div>
-            <button
-              onClick={() => openEdit(s)}
-              className="mt-3 text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
-            >
-              Modifier
-            </button>
+            <div className="flex items-center gap-2 mt-3">
+              <button
+                onClick={() => openEdit(s)}
+                title="Modifier"
+                className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                <PencilIcon />
+              </button>
+              <button
+                onClick={() => setDeleteTarget(s)}
+                title="Supprimer"
+                className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
+              >
+                <TrashIcon />
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -327,6 +373,16 @@ export default function HistoriqueGlobal() {
           </div>
         )}
       </Modal>
+
+      {/* Confirmation de suppression */}
+      <ConfirmDialog
+        open={!!deleteTarget}
+        title="Supprimer cette sortie ?"
+        message={deleteTarget ? `${deleteTarget.quantite} unité${deleteTarget.quantite > 1 ? 's' : ''} de « ${deleteTarget.medicaments?.designation} » sera${deleteTarget.quantite > 1 ? 'nt' : ''} recréditée${deleteTarget.quantite > 1 ? 's' : ''} au stock. Cette action est irréversible.` : ''}
+        confirmLabel={deleting ? 'Suppression…' : 'Supprimer'}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+      />
     </Layout>
   )
 }

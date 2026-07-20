@@ -3,6 +3,7 @@ import { supabase } from '../../lib/supabase'
 import Layout from '../../components/Layout'
 import Modal from '../../components/Modal'
 import ConfirmDialog from '../../components/ConfirmDialog'
+import { PencilIcon, TrashIcon, ArchiveIcon, ArchiveRestoreIcon } from '../../components/Icons'
 
 const NAV = [
   { to: '/responsable', label: 'Dashboard' },
@@ -177,21 +178,24 @@ export default function ListePatients() {
               <div className="flex items-center gap-2 flex-wrap">
                 <button
                   onClick={() => setEditPatient({ id: p.id, nom: p.nom })}
-                  className="text-xs px-2 py-1 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors font-medium"
+                  title="Modifier"
+                  className="p-1.5 rounded bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
                 >
-                  Modifier
+                  <PencilIcon />
                 </button>
                 <button
                   onClick={() => toggleActive(p)}
-                  className="text-xs px-2 py-1 rounded bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20 transition-colors font-medium"
+                  title={p.active === false ? 'Désarchiver' : 'Archiver'}
+                  className="p-1.5 rounded bg-orange-50 text-orange-600 hover:bg-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:hover:bg-orange-500/20 transition-colors"
                 >
-                  {p.active === false ? 'Désarchiver' : 'Archiver'}
+                  {p.active === false ? <ArchiveRestoreIcon /> : <ArchiveIcon />}
                 </button>
                 <button
                   onClick={() => setDeleteTarget(p)}
-                  className="text-xs px-2 py-1 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors font-medium"
+                  title="Supprimer"
+                  className="p-1.5 rounded bg-red-50 text-red-600 hover:bg-red-100 dark:bg-red-500/10 dark:text-red-400 dark:hover:bg-red-500/20 transition-colors"
                 >
-                  Supprimer
+                  <TrashIcon />
                 </button>
               </div>
             </div>
