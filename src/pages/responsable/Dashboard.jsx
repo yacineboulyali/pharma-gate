@@ -20,7 +20,18 @@ export default function ResponsableDashboard() {
   const [stats, setStats] = useState(null)
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { fetchAll() }, [])
+  useEffect(() => {
+    fetchAll()
+
+    const channel = supabase
+      .channel('dashboard-stats')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sorties' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'patients' }, fetchAll)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'medicaments' }, fetchAll)
+      .subscribe()
+
+    return () => { supabase.removeChannel(channel) }
+  }, [])
 
   async function fetchAll() {
     const startMois = startOfMonth(new Date()).toISOString()
